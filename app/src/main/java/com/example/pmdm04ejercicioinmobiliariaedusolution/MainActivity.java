@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private ArrayList<Inmueble> inmueblesList;
     private ActivityResultLauncher<Intent> addInmuebleLauncher;
+    private ActivityResultLauncher<Intent> editInmuebleLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +85,30 @@ public class MainActivity extends AppCompatActivity {
                 }
 
         );
+        editInmuebleLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if(result.getResultCode() == RESULT_OK){
+                    if ( result.getData() != null && result.getData().getExtras() != null){
+                        //sacamos el inmueble
+                        Inmueble inmueble = (Inmueble) result.getData().getExtras().getSerializable(Constantes.INMUEBLE);
+                        //sacamos la posicion donde hay que meterlo del bundle.
+                        int posicion = result.getData().getExtras().getInt(Constantes.POSICION);
+                        if(inmueble!= null) {
+                            //añadimos en el array la posicion y el inmueble
+                            inmueblesList.set(posicion, inmueble);
+                            mostrarInmuebles();
+
+                        }else{
+                            inmueblesList.remove(posicion);
+                            mostrarInmuebles();
+                        }
+                        }else{
+
+                    }
+                }
+            }
+        });
     }
 
     private void mostrarInmuebles() {
@@ -98,6 +123,21 @@ public class MainActivity extends AppCompatActivity {
             TextView lblCiudad = inmuebleView.findViewById(R.id.lblCiudadInmuebleModel);
             RatingBar rbValoracion = inmuebleView.findViewById(R.id.rbValoracionInmuebleModel);
 
+            //como la i no puede ser constante porque se romperia, creamos una variable para guardar la i
+            final int finalI = i;
+            inmuebleView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(MainActivity.this, EditInmuebleActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable(Constantes.INMUEBLE, inmueble);
+                    bundle.putInt(Constantes.POSICION, finalI);
+                    intent.putExtras(bundle);
+                    editInmuebleLauncher.launch(intent);
+                }
+            });
+
+
             lblDireccion.setText(inmueble.getDireccion());
             lblCiudad.setText(inmueble.getCiudad());
             lblProvincia.setText(inmueble.getProvincia());
@@ -105,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
             rbValoracion.setRating(inmueble.getValoracion());
 
             binding.contentMain.contenedor.addView(inmuebleView);
+
 
         }
 
